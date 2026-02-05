@@ -168,3 +168,8 @@ components:
       - type: path
         path: "/etc/vsftpd.conf"
         description: "vsftpd.conf exists"
+      # 육상플랫폼 FTPS 연결 가능 여부 (TLS 핸드셰이크 성공 = 연결 가능)
+      - type: command
+        cmd: "timeout 10 openssl s_client -connect 4.217.184.21:12224 -brief </dev/null 2>&1"
+        shell: true
+        description: "FTPS 육상플랫폼 연결 (4.217.184.21:12224)"
