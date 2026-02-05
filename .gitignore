@@ -30,7 +30,7 @@ build/
 Thumbs.db
 
 # Local DB / data
-dp-manager/data/db/
+tools/dp-manager/data/db/
 
 # Logs & temp
 *.log
