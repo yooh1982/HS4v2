@@ -24,10 +24,11 @@ components:
     checks:
       - type: systemd
         unit: valkey
-      # exit 0이면 연결 가능으로 간주 (MISCONF 등으로 stdout이 PONG이 아닐 수 있음)
+      # PONG이어야 정상. MISCONF(디스크 저장 실패) 시 (error) 메시지 반환 → 실패로 검출
       - type: command
         cmd: "valkey-cli ping"
-        description: "Valkey responds (ping)"
+        expect_stdout: "PONG"
+        description: "Valkey ping PONG (healthy)"
 
   - id: rabbitmq
     name: "RabbitMQ"
