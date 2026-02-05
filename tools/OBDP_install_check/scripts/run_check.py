@@ -84,13 +84,20 @@ def run_cmd(cmd: str, shell: bool = False, timeout: int = 15) -> tuple[int, str,
         return -1, "", str(e)
 
 
-def check_systemd(unit: str, logger: logging.Logger) -> tuple[bool, str]:
-    code, out, err = run_cmd(f"systemctl is-active --quiet {unit}")
-    if code == 0:
-        return True, "active"
-    code2, out2, _ = run_cmd(f"systemctl status {unit} --no-pager -l")
-    detail = out2 or err or "inactive or failed"
-    return False, detail[:500]
+# systemctl status 출력에서 정상 동작 판단 (Active: active (running))
+SYSTEMD_ACTIVE_RUNNING = "Active: active (running)"
+
+
+def check_systemd(unit: str, logger: logging.Logger, status_max_chars: int = 2000) -> tuple[bool, str]:
+    """systemctl status 출력으로 정상 동작 여부 판단. detail에 status 전체 포함."""
+    code, out, err = run_cmd(f"systemctl status {unit} --no-pager -l")
+    combined = (out or "") + "\n" + (err or "")
+    detail = combined.strip() or "no output"
+    if len(detail) > status_max_chars:
+        detail = detail[:status_max_chars] + "\n... (truncated)"
+    if SYSTEMD_ACTIVE_RUNNING in (out or ""):
+        return True, detail
+    return False, detail
 
 
 def check_command(
@@ -132,6 +139,18 @@ def check_path_any(paths: list[str], logger: logging.Logger) -> tuple[bool, str]
         if p.exists():
             return True, str(p)
     return False, f"Not found: {', '.join(paths)}"
+
+
+def check_journalctl(unit: str, lines: int, logger: logging.Logger, detail_max_chars: int = 3000) -> tuple[bool, str]:
+    """journalctl 최근 로그를 가져와 detail에 포함. 정상 수집 시 통과."""
+    cmd = f"journalctl -u {unit} -n {lines} --no-pager"
+    logger.debug("Run: %s", cmd)
+    code, out, err = run_cmd(cmd)
+    combined = (out or "").strip() + "\n" + (err or "").strip()
+    detail = combined.strip() or "no output"
+    if len(detail) > detail_max_chars:
+        detail = detail[:detail_max_chars] + "\n... (truncated)"
+    return code == 0, detail
 
 
 def run_checks(config: dict, logger: logging.Logger) -> dict:
@@ -183,6 +202,13 @@ def run_checks(config: dict, logger: logging.Logger) -> dict:
                 passed, detail = check_path(path, ch.get("expand_user", False), logger)
             elif ch_type == "path_any":
                 passed, detail = check_path_any(ch.get("paths", []), logger)
+            elif ch_type == "journalctl":
+                unit = ch.get("unit", "")
+                n_lines = ch.get("lines", 30)
+                if unit:
+                    passed, detail = check_journalctl(unit, n_lines, logger)
+                else:
+                    passed, detail = False, "journalctl: unit not specified"
 
             comp_result["checks"].append({
                 "type": ch_type,

@@ -53,7 +53,16 @@ def generate_markdown(data: dict) -> str:
         lines.append("")
         for ch in comp.get("checks", []):
             ch_status = "✓" if ch.get("passed") else "✗"
-            lines.append(f"- {ch_status} **{ch.get('description', '')}**: {ch.get('detail', '')[:200]}")
+            detail = ch.get("detail", "")
+            lines.append(f"- {ch_status} **{ch.get('description', '')}**")
+            if len(detail) > 300:
+                lines.append("")
+                lines.append("```")
+                lines.append(detail)
+                lines.append("```")
+                lines.append("")
+            else:
+                lines.append(f"  `{detail[:200]}`" if detail else "")
         lines.append("")
     return "\n".join(lines)
 
@@ -68,6 +77,9 @@ def generate_html(data: dict) -> str:
     failed = summary.get("failed", 0)
     all_passed = failed == 0
 
+    def escape(s: str) -> str:
+        return (s or "").replace("<", "&lt;").replace(">", "&gt;").replace("&", "&amp;")
+
     rows = []
     for comp in data.get("components", []):
         status = "PASS" if comp.get("passed") else "FAIL"
@@ -76,11 +88,18 @@ def generate_html(data: dict) -> str:
         for ch in comp.get("checks", []):
             ch_status = "✓" if ch.get("passed") else "✗"
             ch_class = "pass" if ch.get("passed") else "fail"
-            detail = (ch.get("detail") or "").replace("<", "&lt;").replace(">", "&gt;")[:300]
-            checks_cells.append(f'<span class="{ch_class}">{ch_status} {ch.get("description", "")}</span> {detail}')
+            detail = escape(ch.get("detail") or "")
+            if len(detail) > 400:
+                short = detail[:200] + "..."
+                checks_cells.append(
+                    f'<li><span class="{ch_class}">{ch_status} {ch.get("description", "")}</span> '
+                    f'<details><summary>{short}</summary><pre class="check-detail">{detail}</pre></details></li>'
+                )
+            else:
+                checks_cells.append(f'<li><span class="{ch_class}">{ch_status} {ch.get("description", "")}</span> {detail or ""}</li>')
         rows.append(
             f'<tr class="{row_class}"><td>{comp.get("name", comp.get("id"))}</td><td class="{row_class}">{status}</td>'
-            f'<td><ul>{"".join("<li>" + c + "</li>" for c in checks_cells)}</ul></td></tr>'
+            f'<td><ul>{"".join(checks_cells)}</ul></td></tr>'
         )
 
     html = f"""<!DOCTYPE html>
@@ -107,6 +126,9 @@ def generate_html(data: dict) -> str:
   .fail {{ color: #c62828; }}
   ul {{ margin: 0; padding-left: 1.2rem; }}
   li {{ margin: 0.2rem 0; font-size: 0.9rem; }}
+  pre.check-detail {{ font-size: 0.8rem; max-height: 20em; overflow: auto; white-space: pre-wrap; background: #fafafa; padding: 0.5rem; border: 1px solid #eee; }}
+  details {{ margin-top: 0.25rem; }}
+  details summary {{ cursor: pointer; }}
 </style>
 </head>
 <body>

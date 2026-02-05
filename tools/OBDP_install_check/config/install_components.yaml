@@ -11,6 +11,10 @@ components:
     checks:
       - type: systemd
         unit: postgresql
+      - type: journalctl
+        unit: postgresql
+        lines: 20
+        description: "PostgreSQL recent logs"
       - type: command
         cmd: "pg_isready -U postgres -h localhost"
         description: "PostgreSQL ready"
@@ -24,6 +28,10 @@ components:
     checks:
       - type: systemd
         unit: valkey
+      - type: journalctl
+        unit: valkey
+        lines: 20
+        description: "Valkey recent logs"
       # PONG이어야 정상. MISCONF(디스크 저장 실패) 시 (error) 메시지 반환 → 실패로 검출
       - type: command
         cmd: "valkey-cli ping"
@@ -36,6 +44,10 @@ components:
     checks:
       - type: systemd
         unit: rabbitmq-server
+      - type: journalctl
+        unit: rabbitmq-server
+        lines: 20
+        description: "RabbitMQ recent logs"
       - type: command
         cmd: "sudo rabbitmqctl list_users"
         expect_stdout_contains: "tapp"
@@ -47,6 +59,10 @@ components:
     checks:
       - type: systemd
         unit: emqx
+      - type: journalctl
+        unit: emqx
+        lines: 20
+        description: "EMQ-X recent logs"
       - type: path
         path: "/etc/emqx/emqx.conf"
         description: "emqx.conf exists"
@@ -57,6 +73,10 @@ components:
     checks:
       - type: systemd
         unit: nginx
+      - type: journalctl
+        unit: nginx
+        lines: 20
+        description: "NGINX recent logs"
       # tapp 권한으로는 로그 경로 접근 불가 → 검증만 sudo로 실행
       - type: command
         cmd: "sudo nginx -t"
@@ -68,6 +88,10 @@ components:
     checks:
       - type: systemd
         unit: fluent-bit
+      - type: journalctl
+        unit: fluent-bit
+        lines: 20
+        description: "fluent-bit recent logs"
       # PATH에 없을 수 있음. 공식 install.sh=/opt/fluent-bit/bin, 패키지=/usr/bin
       - type: path_any
         paths: ["/opt/fluent-bit/bin/fluent-bit", "/usr/bin/fluent-bit"]
@@ -79,6 +103,10 @@ components:
     checks:
       - type: systemd
         unit: supervisor
+      - type: journalctl
+        unit: supervisor
+        lines: 20
+        description: "Supervisor recent logs"
 
   - id: zip
     name: "Zip"
@@ -128,6 +156,10 @@ components:
     checks:
       - type: systemd
         unit: vsftpd
+      - type: journalctl
+        unit: vsftpd
+        lines: 20
+        description: "VSFTP recent logs"
       - type: path
         path: "/etc/vsftpd.conf"
         description: "vsftpd.conf exists"
