@@ -84,8 +84,9 @@ def run_cmd(cmd: str, shell: bool = False, timeout: int = 15) -> tuple[int, str,
         return -1, "", str(e)
 
 
-# systemctl status 출력에서 정상 동작 판단 (Active: active (running))
-SYSTEMD_ACTIVE_RUNNING = "Active: active (running)"
+# systemctl status 출력에서 정상 동작 판단
+# active (running): 일반 서비스. active (exited): postgresql 같은 메타/원샷 유닛
+SYSTEMD_ACTIVE_OK = ("Active: active (running)", "Active: active (exited)")
 
 
 def check_systemd(unit: str, logger: logging.Logger, status_max_chars: int = 2000) -> tuple[bool, str]:
@@ -95,7 +96,8 @@ def check_systemd(unit: str, logger: logging.Logger, status_max_chars: int = 200
     detail = combined.strip() or "no output"
     if len(detail) > status_max_chars:
         detail = detail[:status_max_chars] + "\n... (truncated)"
-    if SYSTEMD_ACTIVE_RUNNING in (out or ""):
+    out_str = out or ""
+    if any(ok in out_str for ok in SYSTEMD_ACTIVE_OK):
         return True, detail
     return False, detail
 
