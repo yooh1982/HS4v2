@@ -67,9 +67,9 @@ components:
     checks:
       - type: systemd
         unit: fluent-bit
-      # PATH에 없을 수 있음. 공식 install.sh는 /opt/fluent-bit/bin, 일부는 /usr/bin
-      - type: path
-        path: "/opt/fluent-bit/bin/fluent-bit"
+      # PATH에 없을 수 있음. 공식 install.sh=/opt/fluent-bit/bin, 패키지=/usr/bin
+      - type: path_any
+        paths: ["/opt/fluent-bit/bin/fluent-bit", "/usr/bin/fluent-bit"]
         description: "fluent-bit binary exists"
 
   - id: supervisor

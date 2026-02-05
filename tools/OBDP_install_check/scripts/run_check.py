@@ -125,6 +125,15 @@ def check_path(path: str, expand_user: bool, logger: logging.Logger) -> tuple[bo
     return exists, str(p) if exists else f"Not found: {p}"
 
 
+def check_path_any(paths: list[str], logger: logging.Logger) -> tuple[bool, str]:
+    """여러 경로 중 하나라도 존재하면 통과."""
+    for path in paths:
+        p = Path(path).resolve()
+        if p.exists():
+            return True, str(p)
+    return False, f"Not found: {', '.join(paths)}"
+
+
 def run_checks(config: dict, logger: logging.Logger) -> dict:
     """설정에 따라 모든 검증 실행, 결과 딕셔너리 반환."""
     run_start = datetime.utcnow().isoformat() + "Z"
@@ -172,6 +181,8 @@ def run_checks(config: dict, logger: logging.Logger) -> dict:
             elif ch_type == "path":
                 path = ch.get("path", "")
                 passed, detail = check_path(path, ch.get("expand_user", False), logger)
+            elif ch_type == "path_any":
+                passed, detail = check_path_any(ch.get("paths", []), logger)
 
             comp_result["checks"].append({
                 "type": ch_type,
