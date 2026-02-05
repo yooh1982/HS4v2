@@ -1,0 +1,130 @@
+# install_3rd_parties.sh 기준 설치 컴포넌트 검증 정의
+# installer_id: 로그/보고서에서 구분용 (추후 installer 2 추가 시 확장)
+
+installer_id: install_3rd_parties
+installer_name: "3rd Party Components (PostgreSQL, Valkey, RabbitMQ, EMQ-X, NGINX, etc.)"
+
+components:
+  - id: timescaledb_postgresql
+    name: "TimescaleDB (PostgreSQL 16)"
+    order: 1
+    checks:
+      - type: systemd
+        unit: postgresql
+      - type: command
+        cmd: "pg_isready -U postgres -h localhost"
+        description: "PostgreSQL ready"
+      - type: path
+        path: "/etc/postgresql/16/main/postgresql.conf"
+        description: "postgresql.conf exists"
+
+  - id: valkey
+    name: "Valkey"
+    order: 2
+    checks:
+      - type: systemd
+        unit: valkey
+      - type: command
+        cmd: "valkey-cli ping"
+        expect_stdout: "PONG"
+        description: "Valkey ping"
+
+  - id: rabbitmq
+    name: "RabbitMQ"
+    order: 3
+    checks:
+      - type: systemd
+        unit: rabbitmq-server
+      - type: command
+        cmd: "sudo rabbitmqctl list_users"
+        expect_stdout_contains: "tapp"
+        description: "RabbitMQ user tapp exists"
+
+  - id: emqx
+    name: "EMQ-X"
+    order: 4
+    checks:
+      - type: systemd
+        unit: emqx
+      - type: path
+        path: "/etc/emqx/emqx.conf"
+        description: "emqx.conf exists"
+
+  - id: nginx
+    name: "NGINX"
+    order: 5
+    checks:
+      - type: systemd
+        unit: nginx
+      - type: command
+        cmd: "nginx -t"
+        description: "NGINX config test"
+
+  - id: fluent_bit
+    name: "fluent-bit"
+    order: 6
+    checks:
+      - type: systemd
+        unit: fluent-bit
+      - type: command
+        cmd: "which fluent-bit"
+        description: "fluent-bit in PATH"
+
+  - id: supervisor
+    name: "Supervisor"
+    order: 7
+    checks:
+      - type: systemd
+        unit: supervisor
+
+  - id: zip
+    name: "Zip"
+    order: 8
+    checks:
+      - type: command
+        cmd: "which zip"
+        description: "zip in PATH"
+
+  - id: openjdk
+    name: "OpenJDK (BellSoft Java 21)"
+    order: 9
+    checks:
+      - type: command
+        cmd: "java -version"
+        expect_stdout_contains: "21"
+        description: "Java 21"
+
+  - id: nodejs
+    name: "Node.js 20"
+    order: 10
+    checks:
+      - type: command
+        cmd: "node -v"
+        expect_stdout_contains: "v20"
+        description: "Node v20"
+
+  - id: python3_venv
+    name: "Python3 + venv & packages"
+    order: 11
+    checks:
+      - type: command
+        cmd: "python3 --version"
+        description: "python3 available"
+      - type: path
+        path: "~/.venv/bin/python"
+        expand_user: true
+        description: "venv exists"
+      - type: command
+        cmd: "~/.venv/bin/python -c \"import psycopg, requests, yaml, pexpect\""
+        shell: true
+        description: "pip packages (psycopg, requests, PyYAML, pexpect)"
+
+  - id: vsftpd
+    name: "VSFTP"
+    order: 12
+    checks:
+      - type: systemd
+        unit: vsftpd
+      - type: path
+        path: "/etc/vsftpd.conf"
+        description: "vsftpd.conf exists"

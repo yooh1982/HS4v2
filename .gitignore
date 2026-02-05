@@ -32,6 +32,11 @@ Thumbs.db
 # Local DB / data
 tools/dp-manager/data/db/
 
+# OBDP_install_check runtime
+tools/OBDP_install_check/logs/
+tools/OBDP_install_check/results/
+tools/OBDP_install_check/reports/
+
 # Logs & temp
 *.log
 *.tmp

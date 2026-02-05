@@ -1,0 +1,2 @@
+# OBDP Install Check - Python 의존성
+PyYAML>=6.0
