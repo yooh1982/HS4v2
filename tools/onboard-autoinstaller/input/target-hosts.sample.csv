@@ -1,3 +1,0 @@
-host_id,hostname,ssh_port,ssh_user,auth_type,auth_value,role
-host-01,192.168.1.10,22,deploy,key,~/.ssh/id_rsa,app
-host-02,192.168.1.11,22,deploy,key,~/.ssh/id_rsa,app

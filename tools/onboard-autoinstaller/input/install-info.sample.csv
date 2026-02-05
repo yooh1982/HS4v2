@@ -1,3 +1,0 @@
-profile,platform_version,java_version,install_path,jvm_options,app_port
-prod,2.0.1,17,/opt/smartship,-Xms512m -Xmx1024m,8080
-staging,2.0.1,17,/opt/smartship,-Xms256m -Xmx512m,8080
