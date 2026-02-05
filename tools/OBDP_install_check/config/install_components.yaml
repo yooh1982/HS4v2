@@ -9,6 +9,11 @@ components:
     name: "TimescaleDB (PostgreSQL 16)"
     order: 1
     checks:
+      # (선택) postgresql.service 대신 아래 한 줄 헬스로 대체 가능
+      - type: command
+        cmd: "pg_lsclusters 2>/dev/null | grep -q online || systemctl list-units 'postgresql@*' --no-legend --plain 2>/dev/null | grep -q running"
+        shell: true
+        description: "PostgreSQL cluster/instance healthy (pg_lsclusters or postgresql@*)"
       - type: systemd
         unit: postgresql
       - type: journalctl
